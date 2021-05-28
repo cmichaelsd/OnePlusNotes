@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Notes</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="notes_fragment_label">Notes Fragment</string>
+
+    <string name="action_grid_view">Grid View</string>
+    <string name="action_about">About</string>
+    <string name="action_search">Search</string>
+    <string name="floating_action_button">Add Note Floating Action Button</string>
+    <string name="custom_checkbox">Custom Checkbox</string>
+</resources>
