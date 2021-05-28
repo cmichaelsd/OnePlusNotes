@@ -2,10 +2,8 @@ package com.colemichaels.notes
 
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.MenuItem
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
+import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -14,25 +12,22 @@ import com.colemichaels.notes.dummy.DummyContent
 import com.colemichaels.notes.utilities.PrefsHelper
 
 class NotesFragment : Fragment(),
-        NotesRecyclerViewAdapter.NoteItemListener {
+        NotesRecyclerViewAdapter.NoteItemListener,
+        Toolbar.OnMenuItemClickListener {
 
     private lateinit var binding: FragmentNotesListBinding
     private lateinit var adapter: NotesRecyclerViewAdapter
+    private lateinit var toolbar: Toolbar
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        setHasOptionsMenu(true)
         binding = FragmentNotesListBinding.inflate(layoutInflater, container, false)
-        val layoutStyle = PrefsHelper.getItemType(requireContext())
-        binding.list.layoutManager = if (layoutStyle == "grid") {
-            LinearLayoutManager(requireContext())
-        } else {
-            LinearLayoutManager(requireContext())
-        }
         adapter = NotesRecyclerViewAdapter(DummyContent.ITEMS, this)
-        binding.list.adapter = adapter
+        setHasOptionsMenu(true)
+        setToolbar()
+        setLayoutManager()
         return binding.root
     }
 
@@ -41,30 +36,39 @@ class NotesFragment : Fragment(),
         return true
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
-            R.id.action_grid_view -> {
-                PrefsHelper.setItemType(requireContext(), "grid")
-                binding.list.layoutManager = GridLayoutManager(context, 2)
-                binding.list.adapter = adapter
-            }
+    private fun setLayoutManager() {
+        val layoutStyle = PrefsHelper.getItemType(requireContext())
+        val gridMenuItemText = toolbar.menu.findItem(R.id.action_grid_view)
+        if (layoutStyle == "grid") {
+            gridMenuItemText.title = getString(R.string.action_list_view)
+            binding.list.layoutManager = GridLayoutManager(requireContext(), 2)
+        } else {
+            gridMenuItemText.title = getString(R.string.action_grid_view)
+            binding.list.layoutManager = LinearLayoutManager(requireContext())
         }
-        return true
+        binding.list.adapter = adapter
     }
 
-    companion object {
+    private fun setToolbar() {
+        toolbar = activity?.findViewById(R.id.toolbar)!!
+        toolbar.let {
+            it.title = "Notes"
+            it.inflateMenu(R.menu.menu_main)
+            it.setOnMenuItemClickListener(this)
+        }
+    }
 
-        // TODO: Customize parameter argument names
-        const val ARG_COLUMN_COUNT = "column-count"
+    private fun toggleGridView() {
+        val layoutKey = if (PrefsHelper.getItemType(requireContext()) == "grid") "list" else "grid"
+        PrefsHelper.setItemType(requireContext(), layoutKey)
+        setLayoutManager()
+    }
 
-        // TODO: Customize parameter initialization
-        @JvmStatic
-        fun newInstance(columnCount: Int) =
-            NotesFragment().apply {
-                arguments = Bundle().apply {
-                    putInt(ARG_COLUMN_COUNT, columnCount)
-                }
-            }
+    override fun onMenuItemClick(item: MenuItem?): Boolean {
+        when (item?.itemId) {
+            R.id.action_grid_view -> toggleGridView()
+        }
+        return true
     }
 
 }
